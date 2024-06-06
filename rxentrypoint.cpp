@@ -12,6 +12,7 @@
 #include "MyEditorReactor.h"
 #include "MyDBReactor.h"
 #include "ObjectToNotify.h"
+#include "MyCustomReactor.h"
 
 void initapp()
 {
@@ -44,6 +45,9 @@ void initapp()
 
 	ObjectToNotify::rxInit();
 	acrxBuildClassHierarchy();
+
+	MyCustomReactor::rxInit();
+	acrxBuildClassHierarchy();
 }
 
 void unloadapp()
@@ -54,6 +58,7 @@ void unloadapp()
 	deleteZcRxClass(MyEditorReactor::desc());
 	deleteZcRxClass(MyDBReactor::desc());
 	deleteZcRxClass(ObjectToNotify::desc());
+	deleteZcRxClass(MyCustomReactor::desc());
 }
 
 

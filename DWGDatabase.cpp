@@ -13,6 +13,7 @@
 #include "MyEditorReactor.h"
 #include "MyDBReactor.h"
 #include "ObjectToNotify.h"
+#include "MyCustomReactor.h"
 
 auto createDatabase() {
 	auto pDb = new AcDbDatabase();
@@ -276,7 +277,7 @@ AcDbLine* createLine(AcGePoint3d& startPt, AcGePoint3d endPt) {
 AcDbLine* createLine(AcGePoint3d& startPt) {
 	ads_real length;
 	acedGetReal(_T("\nLength: "), &length);
-	acutPrintf( _T("%.2lf"),length);
+	acutPrintf(_T("%.2lf"), length);
 
 	ads_real ang;
 	acedGetAngle(NULL, _T("\nAngle: "), &ang);
@@ -460,12 +461,15 @@ void drawCunstomEntity() {
 	//initialize all figuration needed
 	AcDbBlockTable* pBT = getBlockTable();
 	AcDbBlockTableRecord* pBTR = getBlockTableRecord(pBT);
+	AcDbDictionary* pNOD = getNameDictionary();
 	CSampleCustEnt* cusEnt = new CSampleCustEnt();
+	MyCustomReactor* cusEntReactor = new MyCustomReactor();
 
 	double radius = 0.0;
 	AcGePoint3d center;
+	AcGePoint3d origin;
 
-	//select circle
+	//select circle and attach this circle to the reactor
 	ads_name cir;
 	ads_point pt;
 	int rc = acedEntSel(_T("\nSelect a Circle: "), cir, pt);
@@ -476,33 +480,57 @@ void drawCunstomEntity() {
 	AcDbObjectId cirID;
 	acdbGetObjectId(cirID, cir);
 
-	AcDbObject* pobj = nullptr;
-	acdbOpenAcDbObject(pobj, cirID, AcDb::kForRead);
+	AcDbObject* pobj = nullptr;		//circle ptr
+	acdbOpenAcDbObject(pobj, cirID, AcDb::kForWrite);
 
 	if (pobj->isKindOf(AcDbCircle::desc())) {
 		AcDbCircle* pCir = AcDbCircle::cast(pobj);
 		if (pCir != nullptr) {
 			radius = pCir->radius();
+			origin = pCir->center();
 			acutPrintf(_T("\nRadius Get: %f"), radius);
 		}
+		pCir->close();
 	}
 	else {
 		acutPrintf(_T("\nUnavailable Entity Selected!"));
 	}
-	pobj->close();
 
 	//select center
 	acedGetPoint(NULL, _T("\nSpecify the Center Point: "), asDblArray(center));
 	acutPrintf(_T("\nCenter: (%f, %f, %f)"), center.x, center.y, center.z);
-
-	//modify custom entity
+	
+	//create custom entity and 
 	cusEnt->setCenter(center);
 	cusEnt->setRadius(radius);
-	pBTR->appendZcDbEntity(cusEnt);
-	acutPrintf(_T("\nCustom Entity Printed"));
+	cusEntReactor->setCenter(origin);		//last point record
+
+	AcDbObjectId entID;
+	pBTR->appendAcDbEntity(entID,cusEnt);
+
+	//store the reactor to the dict
+	AcDbObjectId reactorID;
+	Acad::ErrorStatus es = pNOD->setAt(_T("Custom_Reactor_A"), cusEntReactor, reactorID);
+	if (es != Acad::eOk) {
+		acutPrintf(_T("\nError storing reactor to dictionary."));
+		pNOD->close();
+		return;
+	}
+	acutPrintf(_T("\nPermanent reactor stored in dictionary."));
+
+	//add reactor
+	cusEntReactor->link(entID);
+	pobj->close();
+	pobj = nullptr;
+	acdbOpenAcDbObject((AcDbObject*&)pobj, cirID, AcDb::kForWrite);
+	pobj->addPersistentReactor(reactorID);
+	acutPrintf(_T("\nCustom Entity and Reactor added."));
 
 	//close
+	cusEntReactor->close();
+	pobj->close();
 	cusEnt->close();
+	pNOD->close();
 	pBTR->close();
 	pBT->close();
 

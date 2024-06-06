@@ -48,6 +48,9 @@
     <ClCompile Include="ObjectToNotify.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MyCustomReactor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ZrxProject1.def">
@@ -95,6 +98,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ObjectToNotify.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyCustomReactor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

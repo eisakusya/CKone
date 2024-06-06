@@ -197,6 +197,7 @@
     <ClCompile Include="CustEntJig.cpp" />
     <ClCompile Include="CustomObject.cpp" />
     <ClCompile Include="DWGDatabase.cpp" />
+    <ClCompile Include="MyCustomReactor.cpp" />
     <ClCompile Include="MyDBReactor.cpp" />
     <ClCompile Include="MyEditorReactor.cpp" />
     <ClCompile Include="ObjectToNotify.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="CustomObject.h" />
     <ClInclude Include="DWGDatabase.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MyCustomReactor.h" />
     <ClInclude Include="MyDBReactor.h" />
     <ClInclude Include="MyEditorReactor.h" />
     <ClInclude Include="ObjectToNotify.h" />
