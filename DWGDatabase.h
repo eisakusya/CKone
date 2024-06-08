@@ -6,16 +6,16 @@ void saveDatabase(AcDbDatabase* pDb);
 auto getDatabase();
 
 //method for dictionary
-AcDbDictionary* getNameDictionary();
-void printNamedDcitionary();
-void createDictionary();
+AcDbDictionary* getNameDictionary(AcDbDatabase* pDb);
+void printNamedDcitionary(AcDbDatabase* pDb);
+void createDictionary(AcDbDatabase* pDb);
 void addTextDictionaryItem(AcDbDictionary* pDict, const ACHAR* key, const ACHAR* item);
 void addIntDictionaryItem(AcDbDictionary * pDict, const ACHAR * key, int item);
 
 //method for block
-AcDbBlockTable* getBlockTable();
+AcDbBlockTable* getBlockTable(AcDbDatabase* pDb);
 AcDbBlockTableRecord* getBlockTableRecord(AcDbBlockTable* pBT);
-AcDbObjectId createAnonymousBlock();
+AcDbObjectId createAnonymousBlock(AcDbBlockTable* pBT);
 void showBlock(AcDbBlockTable* pBT, AcDbObjectId blockID);
 void appendEntity(AcDbBlockTableRecord* pBTR);
 
@@ -27,21 +27,13 @@ AcDbPolyline * createPolyLine(AcGePoint3d & startPt, int half);
 AcDbObjectId selectEntity();
 
 //test method
-void addLine();
-void readSample();
-void saveSample();
 void addCircle();
-void draw255Circle();
-void copyEntity();
-void pickPoint();
-void myLine();
-
-void drawCunstomEntity();
-
 void myCircle();
 
-void registerEditorReactor();
-
-void registerDBReactor();
-
-void lineReactor();
+//homework method
+//- 2nd homework
+void draw255Circle();
+//- 3rd homework
+void myLine();
+//- 4th and 6th homework
+void drawCunstomEntity();

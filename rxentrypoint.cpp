@@ -5,47 +5,24 @@
 #include "acestext.h"
 #include "acedads.h"
 #include "helloworld.h"
-#include "DWGDatabase.h"
-#include "SampleCustEnt.h"
+#include "DWGDatabase.h"	//homework operate cpp
+#include "SampleCustEnt.h"		//4th,6th homework
 #include "dbxEntryPoint.h"
-#include "CustomObject.h"
-#include "MyEditorReactor.h"
-#include "MyDBReactor.h"
-#include "ObjectToNotify.h"
-#include "MyCustomReactor.h"
+#include "MyCustomReactor.h"	//6th homework
 
 void initapp()
 {
 	acedRegCmds->addCommand(cmd_group_name, _T("helloworld"), _T("helloworld"), ACRX_CMD_MODAL, helloworld);
-	acedRegCmds->addCommand(cmd_group_name, _T("addline"), _T("addline"), ACRX_CMD_MODAL, addLine);
-	acedRegCmds->addCommand(cmd_group_name, _T("readSample"), _T("readSample"), ACRX_CMD_MODAL, readSample);
-	acedRegCmds->addCommand(cmd_group_name, _T("saveSample"), _T("saveSample"), ACRX_CMD_MODAL, saveSample);
-	acedRegCmds->addCommand(cmd_group_name, _T("addCircle"), _T("addCircle"), ACRX_CMD_MODAL, addCircle);
+	//- second homework
 	acedRegCmds->addCommand(cmd_group_name, _T("draw255"), _T("draw255"), ACRX_CMD_MODAL, draw255Circle);
-	acedRegCmds->addCommand(cmd_group_name, _T("copyentity"), _T("copyentity"), ACRX_CMD_MODAL, copyEntity);
-	acedRegCmds->addCommand(cmd_group_name, _T("pickpoint"), _T("pickpoint"), ACRX_CMD_MODAL, pickPoint);
+	//- third homework
 	acedRegCmds->addCommand(cmd_group_name, _T("myline"), _T("myline"), ACRX_CMD_MODAL, myLine);
+	//- 4th and 6th homework
 	acedRegCmds->addCommand(cmd_group_name, _T("customentity"), _T("customentity"), ACRX_CMD_MODAL, drawCunstomEntity);
+	//- 5th homwork
 	acedRegCmds->addCommand(cmd_group_name, _T("mycircle"), _T("mycircle"), ACRX_CMD_MODAL, myCircle);
-	acedRegCmds->addCommand(cmd_group_name, _T("edreact"), _T("edreact"), ACRX_CMD_MODAL, registerEditorReactor);
-	acedRegCmds->addCommand(cmd_group_name, _T("dbreact"), _T("dbreact"), ACRX_CMD_MODAL, registerDBReactor);
-	acedRegCmds->addCommand(cmd_group_name, _T("linereact"), _T("linereact"), ACRX_CMD_MODAL, lineReactor);
 
 	CSampleCustEnt::rxInit();
-	acrxBuildClassHierarchy();
-
-	CCustomObject::rxInit();
-	acrxBuildClassHierarchy();
-
-	MyEditorReactor::rxInit();
-	acrxBuildClassHierarchy();
-
-	MyDBReactor::rxInit();
-	acrxBuildClassHierarchy();
-
-	ObjectToNotify::rxInit();
-	acrxBuildClassHierarchy();
-
 	MyCustomReactor::rxInit();
 	acrxBuildClassHierarchy();
 }
@@ -54,10 +31,6 @@ void unloadapp()
 {
 	acedRegCmds->removeGroup(cmd_group_name);
 	deleteZcRxClass(CSampleCustEnt::desc());
-	deleteZcRxClass(CCustomObject::desc());
-	deleteZcRxClass(MyEditorReactor::desc());
-	deleteZcRxClass(MyDBReactor::desc());
-	deleteZcRxClass(ObjectToNotify::desc());
 	deleteZcRxClass(MyCustomReactor::desc());
 }
 

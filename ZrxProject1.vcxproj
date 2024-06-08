@@ -195,12 +195,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CustEntJig.cpp" />
-    <ClCompile Include="CustomObject.cpp" />
     <ClCompile Include="DWGDatabase.cpp" />
     <ClCompile Include="MyCustomReactor.cpp" />
-    <ClCompile Include="MyDBReactor.cpp" />
-    <ClCompile Include="MyEditorReactor.cpp" />
-    <ClCompile Include="ObjectToNotify.cpp" />
     <ClCompile Include="rxentrypoint.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -218,13 +214,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CustEntJig.h" />
-    <ClInclude Include="CustomObject.h" />
     <ClInclude Include="DWGDatabase.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MyCustomReactor.h" />
-    <ClInclude Include="MyDBReactor.h" />
-    <ClInclude Include="MyEditorReactor.h" />
-    <ClInclude Include="ObjectToNotify.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="helloworld.h" />
     <ClInclude Include="Resource.h" />

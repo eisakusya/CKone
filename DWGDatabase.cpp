@@ -10,11 +10,9 @@
 #include<stack>
 #include<math.h>
 #include "CustEntJig.h"
-#include "MyEditorReactor.h"
-#include "MyDBReactor.h"
-#include "ObjectToNotify.h"
 #include "MyCustomReactor.h"
 
+//- method for database
 auto createDatabase() {
 	auto pDb = new AcDbDatabase();
 	return pDb;
@@ -24,11 +22,13 @@ auto readDatabase() {
 	auto pDb = new AcDbDatabase(false, true);
 	pDb->readDwgFile(_T("D:\Study\experiment\ZWSOFT\resources\sample.dwg"));
 	pDb->closeInput(true);
+	acutPrintf(_T("/nSuccessfully read."));
 	return pDb;
 }
 
 void saveDatabase(AcDbDatabase* pDb) {
 	pDb->saveAs(_T("D:\Study\experiment\ZWSOFT\resources\sample.dwg"));
+	acutPrintf(_T("/nSuccessfully saved."));
 }
 
 auto getDatabase() {
@@ -36,19 +36,17 @@ auto getDatabase() {
 	return pDb;
 }
 
-AcDbDictionary* getNameDictionary() {
-	AcDbDatabase* pDb = getDatabase();
+//- method for dictionary
+AcDbDictionary* getNameDictionary(AcDbDatabase* pDb) {
 	//method to get the named object dictionary of a database, dictionary of dictionaries
-
 	AcDbDictionary* pNOD = nullptr;
 	acdbOpenAcDbObject((AcDbObject*&)pNOD, pDb->namedObjectsDictionaryId(), AcDb::kForWrite);
 	//named dictionary id->pNOD
 	return pNOD;
 }
 
-void printNamedDcitionary() {
-	AcDbDatabase* pDb = getDatabase();
-	AcDbDictionary* pNOD = getNameDictionary();
+void printNamedDcitionary(AcDbDatabase* pDb) {
+	AcDbDictionary* pNOD = getNameDictionary(pDb);
 	if (pNOD) {
 		auto pItr = pNOD->newIterator();
 		while (!pItr->done()) {
@@ -60,8 +58,8 @@ void printNamedDcitionary() {
 	}
 }
 
-void createDictionary() {
-	AcDbDictionary* pNOD = getNameDictionary();
+void createDictionary(AcDbDatabase* pDb) {
+	AcDbDictionary* pNOD = getNameDictionary(pDb);
 	AcDbDictionary* pDict = new AcDbDictionary();
 	AcDbObjectId dictID;
 	pNOD->setAt(_T("MyDict"), pDict, dictID);
@@ -96,8 +94,8 @@ void addIntDictionaryItem(AcDbDictionary* pDict, const ACHAR* key, int item) {
 	}
 }
 
-AcDbBlockTable* getBlockTable() {
-	auto pDb = acdbHostApplicationServices()->workingDatabase();
+//- method for block
+AcDbBlockTable* getBlockTable(AcDbDatabase* pDb) {
 	AcDbBlockTable* pBT = nullptr;
 	pDb->getBlockTable(pBT, AcDb::kForWrite);
 	if (!pBT) {
@@ -131,14 +129,14 @@ void appendEntity(AcDbBlockTableRecord* pBTR) {
 	pLine->close();
 }
 
-AcDbObjectId createAnonymousBlock() {
-	AcDbBlockTable* pBT = getBlockTable();
+AcDbObjectId createAnonymousBlock(AcDbBlockTable* pBT) {
+	//create a block
 	auto pBTR = new AcDbBlockTableRecord();
+	//set name as anonymous
 	pBTR->setName(_T("*U"));
 	AcDbObjectId btrID;
 	pBT->add(btrID, pBTR);
 	pBTR->close();
-	pBT->close();
 	return btrID;
 }
 
@@ -154,29 +152,9 @@ void showBlock(AcDbBlockTable* pBT, AcDbObjectId blockID) {
 
 //test program below
 
-void addLine() {
-	auto pDb = createDatabase();
-	AcDbBlockTableRecord* pBTR = getBlockTableRecord(getBlockTable());
-	appendEntity(pBTR);
-	pBTR->close();
-	delete pDb;
-	acutPrintf(_T("Line Added!"));
-}
-
-void readSample() {
-	auto pDb = readDatabase();
-	delete pDb;
-}
-
-void saveSample() {
-	auto pDb = acdbHostApplicationServices()->workingDatabase();
-	saveDatabase(pDb);
-	delete pDb;
-}
-
 void addCircle() {
 	auto pDb = createDatabase();
-	AcDbBlockTable* pBT = getBlockTable();
+	AcDbBlockTable* pBT = getBlockTable(pDb);
 	auto pBTR = new AcDbBlockTableRecord();
 	pBTR->setName(_T("Sample"));
 	AcDbObjectId btrID;
@@ -199,12 +177,12 @@ void addCircle() {
 void draw255Circle()
 {
 	//get all figure
-	AcDbDatabase* pDb = createDatabase();
-	AcDbDictionary* pNOD = getNameDictionary();
+	AcDbDatabase* pDb = getDatabase();
+	AcDbDictionary* pNOD = getNameDictionary(pDb);
 
 	//create anonymous block
-	AcDbObjectId blockID = createAnonymousBlock();
-	AcDbBlockTable* pBT = getBlockTable();
+	AcDbBlockTable* pBT = getBlockTable(pDb);
+	AcDbObjectId blockID = createAnonymousBlock(pBT);
 	AcDbBlockTableRecord* pBTR = getBlockTableRecord(pBT);
 
 	//plot circles
@@ -242,39 +220,26 @@ void draw255Circle()
 		pXDict->close();
 		pCir->close();
 	}
-	//close other figuration
+	//close other configuration
 	pBTR->close();
 	pBT->close();
 	pNOD->close();
-	delete pDb;
+	//delete pDb;
 
 	acutPrintf(_T("Circle Drew!"));
 }
 
-void copyEntity()
-{
-	ads_name en;
-	AcGePoint3d apt(100, 100, 0);
-	AcDbObjectId enID;
-	acdbGetAdsName(en, enID);
-	acedCommand(RTSTR, _T("_.Copy"), RTENAME, en, RT3DPOINT, asDblArray(apt), RTNONE);
-}
-
-void pickPoint()
-{
-	AcGePoint3d pt1, pt2;
-	acedGetPoint(NULL, _T("\nStart: "), asDblArray(pt1));
-	acedGetPoint(asDblArray(pt1), _T("\nEnd: "), asDblArray(pt2));
-	acedGetCorner(asDblArray(pt1), _T("\nCorner Point: "), asDblArray(pt2));
-}
-
 AcDbLine* createLine(AcGePoint3d& startPt, AcGePoint3d endPt) {
+	//- sub method for myline
+
 	AcDbLine* pLine = new AcDbLine(startPt, endPt);
 	startPt = endPt;
 	return pLine;
 }
 
 AcDbLine* createLine(AcGePoint3d& startPt) {
+	//- sub method for myline
+
 	ads_real length;
 	acedGetReal(_T("\nLength: "), &length);
 	acutPrintf(_T("%.2lf"), length);
@@ -296,6 +261,8 @@ AcDbLine* createLine(AcGePoint3d& startPt) {
 }
 
 AcDbArc* createArc(AcGePoint3d& startPt) {
+	//- sub method for myline
+
 	AcGePoint3d pt2, pt3;
 	acedGetPoint(asDblArray(startPt), _T("\nSpecify the second point: "), asDblArray(pt2));
 	acedGetPoint(asDblArray(pt2), _T("\nSpecify the third point: "), asDblArray(pt3));
@@ -306,6 +273,8 @@ AcDbArc* createArc(AcGePoint3d& startPt) {
 }
 
 AcDbPolyline* createPolyLine(AcGePoint3d& startPt, int half) {
+	//- sub method for myline
+
 	AcGePoint3d endPt;
 	acedGetPoint(asDblArray(startPt), _T("\nSpecify the end point: "), asDblArray(endPt));
 
@@ -352,14 +321,17 @@ AcDbObjectId selectEntity()
 void myLine()
 {
 	//initialize all figuration needed
-	AcDbBlockTable* pBT = getBlockTable();
+	AcDbDatabase* pDb = getDatabase();
+	AcDbBlockTable* pBT = getBlockTable(pDb);
 	AcDbBlockTableRecord* pBTR = getBlockTableRecord(pBT);
+
+	//structure to store previous point and entity_id
 	typedef struct preNode {
 		AcDbObjectId id;
 		AcGePoint3d startPt;
 	}preNode;
 	std::stack<preNode> preID;
-	bool flag = 0;	//flag for erase,1 for yes,0 for no
+	bool flag = 0;	//flag for identifying whether erase operation,1 for yes,0 for no
 
 	//get start point
 	AcGePoint3d pt1;
@@ -459,9 +431,10 @@ void myLine()
 
 void drawCunstomEntity() {
 	//initialize all figuration needed
-	AcDbBlockTable* pBT = getBlockTable();
+	AcDbDatabase* pDb = getDatabase();
+	AcDbBlockTable* pBT = getBlockTable(pDb);
 	AcDbBlockTableRecord* pBTR = getBlockTableRecord(pBT);
-	AcDbDictionary* pNOD = getNameDictionary();
+	AcDbDictionary* pNOD = getNameDictionary(pDb);
 	CSampleCustEnt* cusEnt = new CSampleCustEnt();
 	MyCustomReactor* cusEntReactor = new MyCustomReactor();
 
@@ -469,7 +442,7 @@ void drawCunstomEntity() {
 	AcGePoint3d center;
 	AcGePoint3d origin;
 
-	//select circle and attach this circle to the reactor
+	//select circle
 	ads_name cir;
 	ads_point pt;
 	int rc = acedEntSel(_T("\nSelect a Circle: "), cir, pt);
@@ -499,14 +472,14 @@ void drawCunstomEntity() {
 	//select center
 	acedGetPoint(NULL, _T("\nSpecify the Center Point: "), asDblArray(center));
 	acutPrintf(_T("\nCenter: (%f, %f, %f)"), center.x, center.y, center.z);
-	
+
 	//create custom entity and 
 	cusEnt->setCenter(center);
 	cusEnt->setRadius(radius);
 	cusEntReactor->setCenter(origin);		//last point record
 
 	AcDbObjectId entID;
-	pBTR->appendAcDbEntity(entID,cusEnt);
+	pBTR->appendAcDbEntity(entID, cusEnt);
 
 	//store the reactor to the dict
 	AcDbObjectId reactorID;
@@ -533,62 +506,12 @@ void drawCunstomEntity() {
 	pNOD->close();
 	pBTR->close();
 	pBT->close();
-
+	//delete pDb;
 }
 
 void myCircle() {
 	CSampleCustEnt* cusEnt = new CSampleCustEnt();
 	CCustEntJig* myJig = new CCustEntJig();
 	myJig->startJig(cusEnt);
-}
-
-void registerEditorReactor()
-{
-	MyEditorReactor* pReactor = new MyEditorReactor();
-	acedEditor->addReactor(pReactor);
-}
-
-void registerDBReactor()
-{
-	AcDbDatabase* pDb = getDatabase();
-	MyDBReactor* pReactor = new MyDBReactor();
-	pDb->addReactor(pReactor);
-}
-
-void lineReactor()
-{
-	ObjectToNotify *pObj = new ObjectToNotify();
-	pObj->setFactor(2.0);
-
-	//attach b line to respond
-	acutPrintf(_T("\nSelect a line to react: "));
-	AcDbObjectId bID = selectEntity();
-	pObj->link(bID);
-	acutPrintf(_T("\nLine attached."));
-
-	//store reactor to dict
-	AcDbObjectId objID;
-	AcDbDictionary* pNOD = getNameDictionary();
-	Acad::ErrorStatus es = pNOD->setAt(_T("object_to_notify_A"), pObj, objID);
-	if (es != Acad::eOk) {
-		acutPrintf(_T("\nError storing reactor to dictionary."));
-		pNOD->close();
-		delete pObj;
-		return;
-	}
-	acutPrintf(_T("\nPermanent reactor stored in dictionary."));
-
-	//add reactor to a line
-	acutPrintf(_T("\nSelect a line to regisetr the reactor: "));
-	AcDbLine* pLine = nullptr;
-	AcDbObjectId aID = selectEntity();
-	acdbOpenObject((AcDbObject*&)pLine, aID, AcDb::kForWrite);
-	pLine->addPersistentReactor(objID);
-	acutPrintf(_T("\nReactor added."));
-
-	//close
-	pObj->close();
-	pLine->close();
-	pNOD->close();
 }
 

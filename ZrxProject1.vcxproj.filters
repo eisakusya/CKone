@@ -36,18 +36,6 @@
     <ClCompile Include="CustEntJig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CustomObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MyEditorReactor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MyDBReactor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjectToNotify.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MyCustomReactor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,25 +70,13 @@
     <ClInclude Include="DWGDatabase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SampleCustEnt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CustEntJig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CustomObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MyEditorReactor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MyDBReactor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectToNotify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MyCustomReactor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SampleCustEnt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
