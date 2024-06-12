@@ -11,6 +11,7 @@
 #include<math.h>
 #include "CustEntJig.h"
 #include "MyCustomReactor.h"
+#include "dbidmap.h"
 
 //- method for database
 auto createDatabase() {
@@ -473,9 +474,10 @@ void drawCunstomEntity() {
 	acedGetPoint(NULL, _T("\nSpecify the Center Point: "), asDblArray(center));
 	acutPrintf(_T("\nCenter: (%f, %f, %f)"), center.x, center.y, center.z);
 
-	//create custom entity and 
+	//create custom entity and add reference of circle
 	cusEnt->setCenter(center);
 	cusEnt->setRadius(radius);
+	cusEnt->setSourceId(cirID);
 	cusEntReactor->setCenter(origin);		//last point record
 
 	AcDbObjectId entID;
@@ -507,6 +509,45 @@ void drawCunstomEntity() {
 	pBTR->close();
 	pBT->close();
 	//delete pDb;
+}
+
+void wblockClonedObjects()
+{
+	AcDbDatabase * pSrcDb = getDatabase();
+	AcDbDatabase * pDestDb = new AcDbDatabase(Adesk::kFalse);
+
+	AcDbBlockTable* pSrcBT = getBlockTable(pSrcDb);
+	AcDbBlockTableRecord* pSrcBTR = getBlockTableRecord(pSrcBT);
+
+	AcDbBlockTable* pDestBT = getBlockTable(pDestDb);
+	AcDbBlockTableRecord* pDestBTR = getBlockTableRecord(pDestBT);
+
+	AcDbIdMapping idMap;
+	idMap.setDestDb(pDestDb);
+
+	AcDbBlockTableRecordIterator* pIter;
+	pSrcBTR->newIterator(pIter);
+	for (; !pIter->done(); pIter->step()) {
+		AcDbEntity* pEntity;
+		pIter->getEntity(pEntity, AcDb::kForRead);
+		if (pEntity->isKindOf(CSampleCustEnt::desc())) {
+			AcDbObject* pClonedObject;
+			pEntity->wblockClone(pDestBTR, pClonedObject, idMap, Adesk::kTrue);
+			if (pClonedObject != nullptr) {
+				pClonedObject->close();
+			}
+		}
+		pEntity->close();
+	}
+	delete pIter;
+
+	pDestDb->saveAs(_T("D://Study//experiment//software//ZrxProject1//dest.dwg"));
+	acutPrintf(_T("\nCloning completed and saved to dest.dwg"));
+
+	pSrcBT->close();
+	pSrcBTR->close();
+	pDestBT->close();
+	pDestBTR->close();
 }
 
 void myCircle() {

@@ -22,6 +22,8 @@ void initapp()
 	//- 5th homwork
 	acedRegCmds->addCommand(cmd_group_name, _T("mycircle"), _T("mycircle"), ACRX_CMD_MODAL, myCircle);
 
+	acedRegCmds->addCommand(cmd_group_name, _T("wblock"), _T("wblock"), ACRX_CMD_SESSION, wblockClonedObjects);
+
 	CSampleCustEnt::rxInit();
 	MyCustomReactor::rxInit();
 	acrxBuildClassHierarchy();

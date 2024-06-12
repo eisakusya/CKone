@@ -35,5 +35,7 @@ void myCircle();
 void draw255Circle();
 //- 3rd homework
 void myLine();
-//- 4th and 6th homework
+//- 4the, 6th and 7th homework
 void drawCunstomEntity();
+//- 7th homework
+void wblockClonedObjects();
