@@ -9,7 +9,9 @@
 #include "SampleCustEnt.h"		//4th,6th homework
 #include "dbxEntryPoint.h"
 #include "MyCustomReactor.h"	//6th homework
+#include "MyDrawOverrule.h"	//8th homework
 
+MyDrawOverrule* pDrawOverrule = new MyDrawOverrule();
 void initapp()
 {
 	acedRegCmds->addCommand(cmd_group_name, _T("helloworld"), _T("helloworld"), ACRX_CMD_MODAL, helloworld);
@@ -21,9 +23,10 @@ void initapp()
 	acedRegCmds->addCommand(cmd_group_name, _T("customentity"), _T("customentity"), ACRX_CMD_MODAL, drawCunstomEntity);
 	//- 5th homwork
 	acedRegCmds->addCommand(cmd_group_name, _T("mycircle"), _T("mycircle"), ACRX_CMD_MODAL, myCircle);
-
+	//- 7th homework
 	acedRegCmds->addCommand(cmd_group_name, _T("wblock"), _T("wblock"), ACRX_CMD_SESSION, wblockClonedObjects);
-
+	//- 8th homework
+	AcRxOverrule::addOverrule(AcDbCircle::desc(), pDrawOverrule);
 	CSampleCustEnt::rxInit();
 	MyCustomReactor::rxInit();
 	acrxBuildClassHierarchy();
@@ -34,6 +37,13 @@ void unloadapp()
 	acedRegCmds->removeGroup(cmd_group_name);
 	deleteZcRxClass(CSampleCustEnt::desc());
 	deleteZcRxClass(MyCustomReactor::desc());
+	if (pDrawOverrule)
+	{
+		AcRxOverrule::removeOverrule(AcDbLine::desc(), pDrawOverrule);
+		delete pDrawOverrule;
+		pDrawOverrule = nullptr;
+	}
+
 }
 
 

@@ -5,6 +5,8 @@
 #include "CustEntJig.h"
 #include "dbidmap.h"
 #include "dbcfilrs.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 //----------------------------------------------------------------------------
 Adesk::UInt32 CSampleCustEnt::kCurrentVersionNumber = 1;
@@ -22,8 +24,7 @@ ACRX_DXF_DEFINE_MEMBERS(
 //---- construct & destruct
 
 CSampleCustEnt::CSampleCustEnt() {
-	/*m_center = AcGePoint3d(0, 0, 0);
-	m_radius = 100;*/
+	setHasSaveVersionOverride(true);
 }
 
 CSampleCustEnt::CSampleCustEnt(const AcDbObjectId & id)
@@ -158,49 +159,55 @@ Adesk::UInt32 CSampleCustEnt::subSetAttributes(AcGiDrawableTraits * traits) {
 
 Acad::ErrorStatus CSampleCustEnt::subGetGripPoints(AcGePoint3dArray& gripPoints, AcDbIntArray & osnapModes, AcDbIntArray & geomIds) const {
 	assertReadEnabled();
-	AcGePoint3d upPt, dnPt, lePt, riPt;
-	upPt.set(m_center.x, m_center.y + m_radius, m_center.z);
-	dnPt.set(m_center.x, m_center.y - m_radius, m_center.z);
-	lePt.set(m_center.x - m_radius, m_center.y, m_center.z);
-	riPt.set(m_center.x + m_radius, m_center.y, m_center.z);
+	
 	gripPoints.append(m_center);
-	gripPoints.append(upPt);
-	gripPoints.append(dnPt);
-	gripPoints.append(lePt);
-	gripPoints.append(riPt);
+	
+	for (int i = 0; i < 8; ++i) {
+		double angle = (i * 45.0) * (M_PI / 180.0); // 45度等分
+		double x = m_center.x + m_radius * cos(angle);
+		double y = m_center.y + m_radius * sin(angle);
+		gripPoints.append(AcGePoint3d(x, y, m_center.z));
+	}
 	return Acad::eOk;
 }
+
 Acad::ErrorStatus CSampleCustEnt::subMoveGripPointsAt(const AcDbIntArray & indices, const AcGeVector3d& offset) {
-	assertWriteEnabled();
-	AcGePoint3d newPt, upPt, dnPt, lePt, riPt;
-	switch (indices[0]) {
-	case(0):
-		m_center += offset;
-		break;
-	case(1):
-		upPt.set(m_center.x, m_center.y + m_radius, m_center.z);
-		newPt = upPt + offset;
-		m_radius = newPt.distanceTo(m_center);
-		break;
-	case(2):
-		//down point
-		dnPt.set(m_center.x, m_center.y - m_radius, m_center.z);
-		newPt = dnPt + offset;
-		m_radius = newPt.distanceTo(m_center);
-		break;
-	case(3):
-		//left point
-		lePt.set(m_center.x - m_radius, m_center.y, m_center.z);
-		newPt = lePt + offset;
-		m_radius = newPt.distanceTo(m_center);
-		break;
-	case(4):
-		//right point
-		riPt.set(m_center.x + m_radius, m_center.y, m_center.z);
-		newPt = riPt + offset;
-		m_radius = newPt.distanceTo(m_center);
-		break;
+	assertWriteEnabled(false);
+	if (indices.isEmpty()) {
+		return Acad::eInvalidInput;
 	}
+
+	bool movedCenter = false;
+	bool radiusChanged = false;
+	double newRadius = m_radius;
+	AcGePoint3d newCenter = m_center;
+
+	for (int i = 0; i < indices.length(); ++i) {
+		int index = indices[i];
+		if (index == 0) {
+			// Move the entire entity if the center grip point is moved
+			newCenter += offset;
+			movedCenter = true;
+		}
+		else if (index > 0 && index <= 8) {
+			// Adjust the radius if any of the 8 points are moved
+			AcGePoint3d gripPoint = m_center + AcGeVector3d(m_radius * cos((index - 1) * M_PI / 4.0),
+				m_radius * sin((index - 1) * M_PI / 4.0),
+				0.0);
+			gripPoint += offset;
+			newRadius = (gripPoint - m_center).length();
+			radiusChanged = true;
+		}
+	}
+
+	if (movedCenter) {
+		setCenter(newCenter);
+	}
+
+	if (radiusChanged) {
+		setRadius(newRadius);
+	}
+
 	return Acad::eOk;
 }
 
@@ -214,22 +221,42 @@ Acad::ErrorStatus CSampleCustEnt::subGetOsnapPoints(
 	AcDbIntArray & geomIds
 ) const {
 	assertReadEnabled();
-	AcDbCircle circle;
-	circle.setCenter(m_center);
-	circle.setRadius(m_radius);
+	if (osnapMode == AcDb::kOsModeCen) {
+		// Center point osnap
+		snapPoints.append(m_center);
+	}
+	else if (osnapMode == AcDb::kOsModeQuad) {
+		// Quadrant points osnap
+		for (int i = 0; i < 8; ++i) {
+			double angle = (i * 45.0) * (M_PI / 180.0); // 45度等分
+			double x = m_center.x + m_radius * cos(angle);
+			double y = m_center.y + m_radius * sin(angle);
+			snapPoints.append(AcGePoint3d(x, y, m_center.z));
+		}
+	}
 	acutPrintf(_T("Snap points"));
-	return circle.getOsnapPoints(osnapMode, gsSelectionMark, pickPoint, lastPoint, viewXform, snapPoints, geomIds);
+	return Acad::eOk;
+	
 }
 
 
-void CSampleCustEnt::setRadius(double r)
+Acad::ErrorStatus CSampleCustEnt::setRadius(double r)
 {
-	assertWriteEnabled();
+	assertWriteEnabled(Adesk::kFalse, Adesk::kFalse);	//false for banning auto undo
 	if (r <= 0) {
 		acutPrintf(_T("\nUnavailable Radius!"));
+		return Acad::eInvalidInput;
 	}
 	else {
+		AcDbDwgFiler* pFiler = NULL;
+		if ((pFiler = undoFiler()) != NULL) {
+			undoFiler()->writeAddress(CSampleCustEnt::desc());
+			undoFiler()->writeItem((Adesk::Int16)PartialUndoCode::kRadius);
+			undoFiler()->writeDouble(m_radius);
+		}
 		m_radius = r;
+		recordGraphicsModified(true);
+		return Acad::eOk;
 	}
 }
 
@@ -239,11 +266,18 @@ double CSampleCustEnt::getRadius()
 	return m_radius;
 }
 
-void CSampleCustEnt::setCenter(AcGePoint3d center)
+Acad::ErrorStatus CSampleCustEnt::setCenter(AcGePoint3d center)
 {
-	assertWriteEnabled();
-
+	assertWriteEnabled(Adesk::kFalse,Adesk::kFalse);
+	AcDbDwgFiler* pFiler = NULL;
+	if ((pFiler = undoFiler()) != NULL) {
+		undoFiler()->writeAddress(CSampleCustEnt::desc());
+		undoFiler()->writeItem((Adesk::Int16)PartialUndoCode::kCenter);
+		undoFiler()->writeItem(m_center);
+	}
 	m_center = center;
+	recordGraphicsModified(true);
+	return Acad::eOk;
 }
 
 AcGePoint3d CSampleCustEnt::getCenter()
@@ -407,8 +441,6 @@ Acad::ErrorStatus CSampleCustEnt::subWblockClone(
 	else
 		return Acad::eOutOfMemory;
 
-	//否则就把源对象的owner设置给复制对象，在转译阶段进行转换，这个（源对象与目标对象owner一样）也会作为转译阶段要用到的一个标志
-	//要注意这代表源对象的owner也是需要被复制到目标的数据库里的，否则转译阶段会出错
 	AcDbBlockTableRecord *pBTR = NULL;
 	//if owner is record or something we know
 	//otherwise original owner need to be copied to the cloned one
@@ -475,5 +507,33 @@ Acad::ErrorStatus CSampleCustEnt::subWblockClone(
 			pClonedSubObject->close();
 	}
 
+	return Acad::eOk;
+}
+
+Acad::ErrorStatus CSampleCustEnt::applyPartialUndo(AcDbDwgFiler* undoFiler, AcRxClass* classObj)
+{
+	if (classObj != CSampleCustEnt::desc())
+		return AcDbEntity::applyPartialUndo(undoFiler, classObj);
+	Adesk::Int16 shortCode;
+	undoFiler->readItem(&shortCode);
+	PartialUndoCode code = (PartialUndoCode)shortCode;
+	double rad = 0;
+	AcGePoint3d center;
+	switch (code) {
+	case kRadius:
+		//sequce as dwg out when multiple data
+		undoFiler->readDouble(&rad);
+		setRadius(rad);
+		acutPrintf(_T("Partial undo radius"));
+		break;
+	case kCenter:
+		undoFiler->readItem(&center);
+		setCenter(center);
+		acutPrintf(_T("Partial undo center"));
+		break;
+	default:
+		assert(Adesk::kFalse);
+		break;
+	}
 	return Acad::eOk;
 }

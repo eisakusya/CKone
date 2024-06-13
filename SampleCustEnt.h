@@ -6,6 +6,12 @@ class CSampleCustEnt : public AcDbEntity
 {
 public:
 	ACRX_DECLARE_MEMBERS(CSampleCustEnt);
+	enum PartialUndoCode
+	{
+		kNoOp = 1,
+		kCenter = 2,
+		kRadius = 3
+	};
 
 protected:
 	static Adesk::UInt32 kCurrentVersionNumber;
@@ -40,12 +46,14 @@ protected:
 
 	Acad::ErrorStatus subDeepClone(AcDbObject * pOwner, AcDbObject *& pClonedObject, AcDbIdMapping & idMap, Adesk::Boolean isPrimary) const;
 	Acad::ErrorStatus subWblockClone(AcRxObject * pOwner, AcDbObject *& pClonedObject, AcDbIdMapping & idMap, Adesk::Boolean isPrimary) const;
+
 public:
-	void setRadius(double r = 0);
+	Acad::ErrorStatus setRadius(double r = 0);
 	double getRadius();
-	void setCenter(AcGePoint3d center);
+	Acad::ErrorStatus setCenter(AcGePoint3d center);
 	AcGePoint3d getCenter();
 	Acad::ErrorStatus setSourceId(AcDbObjectId id);
+	Acad::ErrorStatus applyPartialUndo(AcDbDwgFiler * undoFiler, AcRxClass * classObj);
 };
 
 #endif

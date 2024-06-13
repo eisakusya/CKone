@@ -39,6 +39,9 @@
     <ClCompile Include="MyCustomReactor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MyDrawOverrule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ZrxProject1.def">
@@ -77,6 +80,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SampleCustEnt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyDrawOverrule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
